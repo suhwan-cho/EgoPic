@@ -1,9 +1,3 @@
-WIP 
-
-
-EgoX reproduce protocol
-
-
 # Reproducing the EgoX Table-1 Numbers
 
 This document specifies, end to end, how to reproduce the evaluation numbers of
