@@ -11,7 +11,7 @@ paper's numbers were matched as closely as possible. **9 of the 11 metrics repro
 within noise**; the remaining gaps are generation-side, not scoring-side (see [§6](#6-calibration-results)).
 
 - Scoring implementation: [`eval.py`](../eval.py) (single file)
-- Frozen protocol config: [`results/eval/protocol.json`](../results/eval/protocol.json) (applied automatically)
+- Frozen protocol config: the JSON block in [§4](#4-step-2--scoring) (self-contained — no external file required)
 - Per-condition calibration sweeps: `results/eval/EgoX_official/calibration_sweeps.txt`
 
 ## Contents
@@ -97,8 +97,31 @@ python eval.py eval \
   --out results/eval/EgoX_official/results_unseen.txt
 ```
 
-- If `results/eval/protocol.json` exists it is applied automatically
-  (object matching mode, DynDeg threshold — see §5).
+- Two scoring choices are **not** `eval.py` defaults and are supplied through a small
+  config file. Create `results/eval/protocol.json` with exactly this content
+  (it is applied automatically when present):
+
+  ```json
+  {
+    "object": {
+      "mode": "track",
+      "tau": 0.9,
+      "sim_field": 2,
+      "loc_field": 3,
+      "iou_field": 4,
+      "agg": "perclip"
+    },
+    "dyndeg_fixed_thres": 2.0
+  }
+  ```
+
+  Semantics (each maps to the specification in §5): `mode: "track"` + `tau: 0.9` =
+  track-level matching with mean-cosine threshold 0.9 (§5.2-3); `sim_field: 2` = the
+  DINOv3 ViT-L **pre-LN patch-mean** cosine (§5.2-2); `loc_field: 3` = bbox-center L2;
+  `iou_field: 4` = bbox IoU; `agg: "perclip"` = per-clip mean then mean over clips
+  (§5.2-5); `dyndeg_fixed_thres: 2.0` = the fixed RAFT threshold for Dynamic Degree
+  (§5.3). With this block reproduced verbatim, no other file is needed — everything
+  else in this document is an `eval.py` default.
 - Image/object metrics shard per clip across the listed GPUs; FVD and VBench run once
   over the full set. Sharding does not change the numbers.
 - Outputs: a human-readable table with the paper baselines and per-metric deltas
